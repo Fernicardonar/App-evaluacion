@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+    id_usuario       String    @id @default(uuid())
+    nombre           String
+    correo           String    @unique
+    cedula           String
+    contraseña_hash  String
+    rol              Rol
+  
+    evaluaciones     Evaluacion[] @relation("DocenteEvaluaciones")
+  }
+  
+  model Estudiante {
+    id_estudiante  String      @id @default(uuid())
+    nombre         String
+    cedula         String
+    correo         String
+  
+    evaluaciones   Evaluacion[]
+  }
+  
+  model Practica {
+    id_practica    String       @id @default(uuid())
+    nombre         String
+  
+    evaluaciones   Evaluacion[]
+  }
+  
+  model Evaluacion {
+    id_evaluacion         String                @id @default(uuid())
+    fecha_evaluacion      DateTime
+    fecha_inicio_practica DateTime
+    fecha_fin_practica    DateTime
+    nota_final            Float?
+    reporte_cualitativo   String?
+  
+    // Relaciones
+    docente    Usuario    @relation("DocenteEvaluaciones", fields: [id_docente], references: [id_usuario])
+    id_docente String
+  
+    estudiante Estudiante @relation(fields: [id_estudiante], references: [id_estudiante])
+    id_estudiante String
+  
+    practica   Practica   @relation(fields: [id_practica], references: [id_practica])
+    id_practica String
+  
+    componentes ComponenteEvaluacion[]
+    descripcionFinal DescripcionFinal?
+  }
+  
+  model ComponenteEvaluacion {
+    id_componente      String       @id @default(uuid())
+    nombre_componente  String
+    porcentaje         Int
+    nota_componente    Float?
+  
+    evaluacion   Evaluacion @relation(fields: [id_evaluacion], references: [id_evaluacion])
+    id_evaluacion String
+  
+    items        ItemEvaluacion[]
+  }
+  
+  model ItemEvaluacion {
+    id_item        String    @id @default(uuid())
+    enunciado      String
+    nota           Float?
+  
+    componente     ComponenteEvaluacion @relation(fields: [id_componente], references: [id_componente])
+    id_componente  String
+  }
+  
+  model DescripcionFinal {
+    id_evaluacion  String     @id
+    nivel          String
+    cumplimiento   Int
+    descripcion    String
+  
+    evaluacion     Evaluacion @relation(fields: [id_evaluacion], references: [id_evaluacion])
+  }
+  
+  enum Rol {
+    docente
+    admin
+  }
+  
